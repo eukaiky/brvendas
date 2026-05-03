@@ -48,7 +48,7 @@ export default function Hero() {
           href="#planos" 
           className="flex md:hidden bg-brand-red text-white text-xs px-10 py-4 rounded-full font-bold uppercase tracking-widest hover:bg-red-700 transition active:scale-95 shadow-[0_0_20px_rgba(230,0,0,0.4)]"
         >
-          Quero ver planos
+          Ver planos
         </a>
       </div>
     </section>
