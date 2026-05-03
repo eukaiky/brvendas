@@ -1,86 +1,166 @@
-import { Zap, Star, Crown, Check } from 'lucide-react';
+import { useState } from 'react';
+import { Zap, Star, Crown, Check, Ticket, Calculator } from 'lucide-react';
 
 export default function Planos() {
+  const [cupom, setCupom] = useState('');
+  const [desconto, setDesconto] = useState(0);
+  
+  // Estados do Calculador
+  const [cidadeDestino, setCidadeDestino] = useState('');
+  const [estadoDestino, setEstadoDestino] = useState('SP');
+  const [planoLogistica, setPlanoLogistica] = useState('A');
+  const [resultadoCalculo, setResultadoCalculo] = useState(null);
+
+  const telefone = "5519994335140";
+
+  const aplicarCupom = (valor) => {
+    const code = valor.toUpperCase();
+    setCupom(code);
+    if (code === 'BARES30') setDesconto(0.30);
+    else if (code === 'BARZINHO20') setDesconto(0.20);
+    else if (code === 'BAR10PORCENTO') setDesconto(0.10);
+    else setDesconto(0);
+  };
+
+  const calcularPreco = (precoBase) => {
+    const valorFinal = precoBase * (1 - desconto);
+    return valorFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
+
+  const calcularLogistica = async () => {
+    if (!cidadeDestino) return alert("Digite a cidade de destino!");
+
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${cidadeDestino},${estadoDestino},Brazil`);
+      const data = await response.json();
+      if (data.length === 0) throw new Error("Cidade não encontrada");
+
+      const lat1 = -21.4667; // Mococa
+      const lon1 = -47.0000;
+      const lat2 = parseFloat(data[0].lat);
+      const lon2 = parseFloat(data[0].lon);
+
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const distanciaKm = Math.round(R * c * 1.2); 
+
+      let taxaKm = 2; let integrantes = 2;
+      if (planoLogistica === 'B') { taxaKm = 6; integrantes = 6; }
+      if (planoLogistica === 'C') { taxaKm = 8; integrantes = 12; }
+
+      const totalLocomocao = distanciaKm * taxaKm;
+      const precisaHospedagem = distanciaKm > 200;
+      const totalHospedagem = precisaHospedagem ? integrantes * 150 : 0;
+
+      setResultadoCalculo({
+        distancia: distanciaKm,
+        total: totalLocomocao + totalHospedagem,
+        cidade: cidadeDestino.toUpperCase()
+      });
+    } catch (error) {
+      alert("Cidade não encontrada. Tente digitar sem acentos.");
+    }
+  };
+
+  const enviarWhatsApp = (nomePlano, precoBase) => {
+    let mensagem = `Olá! Tenho interesse no *${nomePlano}*.`;
+    
+    if (precoBase > 0) {
+      mensagem += `\n- Valor do Show: ${calcularPreco(precoBase)}`;
+      if (desconto > 0) mensagem += ` (Cupom ${cupom} aplicado)`;
+    }
+
+    if (resultadoCalculo) {
+      mensagem += `\n- Logística para ${resultadoCalculo.cidade}: ${resultadoCalculo.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+    }
+
+    const url = `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`;
+    window.open(url, '_blank');
+  };
+
   return (
     <section id="planos" className="py-20 bg-black/50">
       <div className="max-w-7xl mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-center text-brand-red mb-16 glow-text">PLANOS</h2>
+        <h2 className="text-3xl md:text-4xl font-bold text-center text-brand-red mb-16 glow-text uppercase">PLANOS</h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          {/* Plano A */}
+        {/* GRID DE PLANOS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch mb-16">
+          {/* PLANO A */}
           <div className="bg-brand-gray border border-white/10 rounded-2xl p-8 hover:border-brand-red/30 transition flex flex-col">
-            <div className="flex items-center gap-3 text-brand-red mb-4">
-              <Zap size={28} />
-              <h3 className="text-2xl font-bold text-white">PLANO A</h3>
-            </div>
+            <div className="flex items-center gap-3 text-brand-red mb-4"><Zap size={28} /><h3 className="text-2xl font-bold text-white uppercase">PLANO A</h3></div>
             <p className="text-brand-red font-semibold mb-6">Acústico</p>
-            <p className="text-sm text-gray-400 mb-8">Recomendado para: Bares, Pubs e Restaurantes</p>
-            
-            <ul className="space-y-4 mb-8 flex-grow">
-              <li className="flex gap-3 text-gray-300"><Check className="text-brand-red flex-shrink-0" size={20} /> Formato: Voz, Violão e Cajón</li>
-              <li className="flex gap-3 text-gray-300"><Check className="text-brand-red flex-shrink-0" size={20} /> Tempo: 3h de show</li>
-              <li className="flex gap-3 text-gray-300"><Check className="text-brand-red flex-shrink-0" size={20} /> Sistema de Som: PA Básico incluso</li>
+            <ul className="space-y-4 mb-8 flex-grow text-gray-300 text-sm">
+              <li className="flex gap-3"><Check className="text-brand-red" size={18} /> Voz, violão e cajón</li>
+              <li className="flex gap-3"><Check className="text-brand-red" size={18} /> 2 a 3h de show</li>
+              <li className="flex gap-3"><Check className="text-brand-red" size={18} /> PA básico incluso</li>
             </ul>
-
-            <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-              Entre em contato para negociar taxa de locomoção e hospedagem para shows fora de Mococa-SP.
-            </p>
-            
-            <button className="w-full py-3 rounded-lg border border-brand-red text-brand-red hover:bg-brand-red hover:text-white transition font-bold">
-              QUERO ESSE PLANO
-            </button>
+            <div className="mb-6 flex flex-col items-center">
+              {desconto > 0 && <span className="text-gray-500 line-through text-sm">R$ 800,00</span>}
+              <span className="text-4xl font-serif font-bold bg-gradient-to-b from-[#f7e482] via-[#d4af37] to-[#8a6d3b] bg-clip-text text-transparent italic tracking-tighter">{calcularPreco(800)}</span>
+            </div>
+            <button onClick={() => enviarWhatsApp("PLANO A (Acústico)", 800)} className="w-full py-3 rounded-lg border border-brand-red text-brand-red font-bold uppercase text-xs tracking-widest">QUERO ESSE PLANO</button>
           </div>
 
-          {/* Plano B */}
-          <div className="bg-brand-gray border-2 border-brand-red rounded-2xl p-8 transform md:-translate-y-4 shadow-[0_0_30px_rgba(230,0,0,0.15)] relative flex flex-col">
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-brand-red text-white px-4 py-1 rounded-full text-sm font-bold tracking-wider">
-              MAIS PEDIDO
-            </div>
-            <div className="flex items-center gap-3 text-brand-red mb-4 mt-2">
-              <Star size={28} />
-              <h3 className="text-2xl font-bold text-white">PLANO B</h3>
-            </div>
+          {/* PLANO B */}
+          <div className="bg-brand-gray border-2 border-brand-red rounded-2xl p-8 transform md:-translate-y-4 shadow-xl relative flex flex-col">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-brand-red text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">MAIS PEDIDO</div>
+            <div className="flex items-center gap-3 text-brand-red mb-4 mt-2"><Star size={28} /><h3 className="text-2xl font-bold text-white uppercase">PLANO B</h3></div>
             <p className="text-brand-red font-semibold mb-6">Banda Reduzida</p>
-            <p className="text-sm text-gray-400 mb-8">Recomendado para: Festas e Casamentos</p>
-            
-            <ul className="space-y-4 mb-8 flex-grow">
-              <li className="flex gap-3 text-gray-300"><Check className="text-brand-red flex-shrink-0" size={20} /> Músicos: Bateria, Baixo, Violão, Sanfona/teclado</li>
-              <li className="flex gap-3 text-gray-300"><Check className="text-brand-red flex-shrink-0" size={20} /> Tempo: 2h de show (negociavel) </li>
-              <li className="flex gap-3 text-gray-300"><Check className="text-brand-red flex-shrink-0" size={20} /> Backline: Estrutura completa</li>
-              <li className="flex gap-3 text-gray-300"><Check className="text-brand-red flex-shrink-0" size={20} /> Produção: Equipe no local</li>
+            <ul className="space-y-4 mb-8 flex-grow text-gray-300 text-sm">
+              <li className="flex gap-3"><Check className="text-brand-red" size={18} /> Bateria, baixo, violão, sanfona</li>
+              <li className="flex gap-3"><Check className="text-brand-red" size={18} /> Técnico de som</li>
             </ul>
-
-            <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-              Entre em contato para negociar taxa de locomoção e hospedagem para shows fora de Mococa-SP.
-            </p>
-            
-            <button className="w-full py-3 rounded-lg bg-brand-red text-white hover:bg-red-700 transition font-bold shadow-lg">
-              QUERO ESSE PLANO
-            </button>
+            <div className="mb-6 flex flex-col items-center">
+              {desconto > 0 && <span className="text-gray-500 line-through text-sm">R$ 2.500,00</span>}
+              <span className="text-4xl font-serif font-bold bg-gradient-to-b from-[#f7e482] via-[#d4af37] to-[#8a6d3b] bg-clip-text text-transparent italic tracking-tighter">{calcularPreco(2500)}</span>
+            </div>
+            <button onClick={() => enviarWhatsApp("PLANO B (Banda Reduzida)", 2500)} className="w-full py-3 rounded-lg bg-brand-red text-white font-bold uppercase text-xs tracking-widest">QUERO ESSE PLANO</button>
           </div>
 
-          {/* Plano C */}
+          {/* PLANO C */}
           <div className="bg-brand-gray border border-white/10 rounded-2xl p-8 hover:border-brand-red/30 transition flex flex-col">
-            <div className="flex items-center gap-3 text-brand-red mb-4">
-              <Crown size={28} />
-              <h3 className="text-2xl font-bold text-white">PLANO C</h3>
-            </div>
+            <div className="flex items-center gap-3 text-brand-red mb-4"><Crown size={28} /><h3 className="text-2xl font-bold text-white uppercase">PLANO C</h3></div>
             <p className="text-brand-red font-semibold mb-6">Premium Corporativo</p>
-            <p className="text-sm text-gray-400 mb-8">Recomendado para: Prefeituras e Grandes Eventos</p>
-            
-            <ul className="space-y-4 mb-8 flex-grow">
-              <li className="flex gap-3 text-gray-300"><Check className="text-brand-red flex-shrink-0" size={20} /> Músicos: Bateria, Baixo, Violão Base, Violão Solo, Sanfona/teclado, Percuteria, Opcionais (escolha do contratante) </li>
-              <li className="flex gap-3 text-gray-300"><Check className="text-brand-red flex-shrink-0" size={20} /> Tempo: 2h de show</li>
-              <li className="flex gap-3 text-gray-300"><Check className="text-brand-red flex-shrink-0" size={20} /> Backline: Estrutura completa</li>
+            <ul className="space-y-4 mb-8 flex-grow text-gray-300 text-sm">
+              <li className="flex gap-3"><Check className="text-brand-red" size={18} /> Equipe completa</li>
+              <li className="flex gap-3"><Check className="text-brand-red" size={18} /> Full banda corporativa</li>
             </ul>
+            <div className="mb-6 flex justify-center py-2">
+              <span className="text-3xl font-serif font-bold bg-gradient-to-b from-[#f7e482] via-[#d4af37] to-[#8a6d3b] bg-clip-text text-transparent italic tracking-tight uppercase">Sob Consulta</span>
+            </div>
+            <button onClick={() => enviarWhatsApp("PLANO C (Premium)", 0)} className="w-full py-3 rounded-lg border border-brand-red text-brand-red font-bold uppercase text-xs tracking-widest">QUERO ESSE PLANO</button>
+          </div>
+        </div>
 
-            <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-              Entre em contato para negociar taxa de locomoção e hospedagem para shows fora de Mococa-SP.
-            </p>
-            
-            <button className="w-full py-3 rounded-lg border border-brand-red text-brand-red hover:bg-brand-red hover:text-white transition font-bold">
-              QUERO ESSE PLANO
-            </button>
+        {/* CUPOM E CALCULADORA LADO A LADO */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-brand-gray p-6 rounded-2xl border border-white/10">
+            <div className="flex items-center gap-2 mb-4 text-yellow-500 justify-center"><Ticket size={20} /><span className="font-bold uppercase text-sm">Cupom?</span></div>
+            <input type="text" value={cupom} onChange={(e) => aplicarCupom(e.target.value)} placeholder="Código..." className="w-full bg-black/30 border border-white/20 rounded-lg py-3 text-center text-white uppercase" />
+            {desconto > 0 && <p className="text-green-500 text-center text-xs mt-3 font-bold uppercase tracking-widest animate-pulse">✓ {desconto * 100}% de desconto!</p>}
+          </div>
+
+          <div className="bg-brand-gray p-6 rounded-2xl border border-white/10">
+            <div className="flex items-center gap-2 mb-4 text-brand-red justify-center"><Calculator size={20} /><span className="font-bold uppercase text-sm">Cálculo de Logística</span></div>
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <input type="text" placeholder="Cidade" className="bg-black/30 border border-white/20 rounded-lg p-2 text-sm" onChange={(e) => setCidadeDestino(e.target.value)} />
+              <select className="bg-black/30 border border-white/20 rounded-lg p-2 text-sm" onChange={(e) => setEstadoDestino(e.target.value)}>
+                <option value="SP">SP</option><option value="MG">MG</option><option value="RJ">RJ</option><option value="PR">PR</option>
+              </select>
+            </div>
+            <select className="w-full bg-black/30 border border-white/20 rounded-lg p-2 text-sm mb-2" onChange={(e) => setPlanoLogistica(e.target.value)}>
+              <option value="A">Plano A</option><option value="B">Plano B</option><option value="C">Plano C</option>
+            </select>
+            <button onClick={calcularLogistica} className="w-full bg-brand-red py-2 rounded-lg text-xs font-bold uppercase tracking-widest">Calcular</button>
+            {resultadoCalculo && (
+              <div className="mt-4 text-center border-t border-white/10 pt-2">
+                <p className="text-[10px] text-gray-400 uppercase tracking-widest">Taxa estimada para {resultadoCalculo.cidade}</p>
+                <p className="text-xl font-bold text-brand-red">{resultadoCalculo.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

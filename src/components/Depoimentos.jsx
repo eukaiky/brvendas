@@ -4,7 +4,7 @@ export default function Depoimentos() {
   const depoimentos = [
     { name: "Fernanda & Lucas", role: "Noivos", text: "Contratar a dupla para o nosso casamento foi a melhor decisão! O show foi incrível, todos os convidados dançaram do começo ao fim. Energia surreal!" },
     { name: "Ricardo Almeida", role: "Diretor Comercial", text: "Fizemos a confraternização da empresa e foi um sucesso absoluto. Já quero deixar fechado para o ano que vem. Profissionalismo e diversão garantidos." },
-    { name: "Ana Carolina", role: "Contratante", text: "Melhor show sertanejo da região! Fui no último e foi a melhor experiência. Repertório atualizado e a interação com o público é sensacional." }
+    { name: "Ana Carolina", role: "Fã", text: "Melhor show sertanejo da região! Fui no último e foi a melhor experiência. Repertório atualizado e a interação com o público é sensacional." }
   ];
 
   return (

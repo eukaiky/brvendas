@@ -2,26 +2,51 @@ import { useState, useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
 
 export default function Agenda() {
-  const numeroWhatsApp = "5519994335140"; 
+  const numeroWhatsApp = "5519994335140";
 
   const [messages, setMessages] = useState([
     { id: 1, sender: 'bot', text: 'Fala, tudo certo? Aqui é da produção da dupla Brunno & Rodrigues. 🎤' },
     { id: 2, sender: 'bot', text: 'Você já está organizando um evento para contratar a dupla ou ainda está avaliando ideias?' }
   ]);
-  
+
   const [inputValue, setInputValue] = useState('');
   const [showOptions, setShowOptions] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   
-  // Referência para a div principal do chat, em vez do final da mensagem
+  const [step, setStep] = useState(0); 
+  const [dadosEvento, setDadosEvento] = useState({
+    cidade: '',
+    data: '',
+    horario: '',
+    plano: ''
+  });
+
   const chatContainerRef = useRef(null);
 
-  // Agora ele rola apenas DENTRO do chat, e não a tela do navegador
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [messages, isTyping]);
+
+  const botReply = (text, nextStep = null, isFinal = false) => {
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text }]);
+      
+      if (nextStep !== null) setStep(nextStep);
+
+      if (isFinal) {
+        setTimeout(() => {
+          setMessages(prev => [
+            ...prev,
+            { id: Date.now() + 1, sender: 'bot', isLink: true, text: '📲 ENVIAR DADOS VIA WHATSAPP' }
+          ]);
+        }, 800);
+      }
+    }, 1200);
+  };
 
   const handleSend = (text) => {
     if (!text.trim()) return;
@@ -29,30 +54,58 @@ export default function Agenda() {
     setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text }]);
     setInputValue('');
     setShowOptions(false);
-    setIsTyping(true);
 
-    setTimeout(() => {
-      setIsTyping(false);
-      setMessages(prev => [
-        ...prev, 
-        { 
-          id: Date.now() + 1, 
-          sender: 'bot', 
-          text: 'Show! Para eu te passar as datas disponíveis, valores e fechar os detalhes, vamos continuar no WhatsApp?' 
-        },
-        {
-          id: Date.now() + 2,
-          sender: 'bot',
-          isLink: true, 
-          text: '📲 IR PARA O WHATSAPP'
-        }
-      ]);
-    }, 1500);
+    // Lógica para "Só Pesquisando"
+    if (text === "Estou só pesquisando valores por enquanto.") {
+      botReply("Ok, fique à vontade! Abaixo está nosso número caso mude de ideia ou precise de algo específico.");
+      setTimeout(() => {
+        setMessages(prev => [
+          ...prev,
+          { id: Date.now() + 1, sender: 'bot', isLink: true, text: '📲 CHAMAR NO WHATSAPP' }
+        ]);
+      }, 1500);
+      setStep(5); // Finaliza o fluxo
+      return;
+    }
+
+    // Fluxo do Chatbot para Contratação
+    if (step === 0) {
+      botReply("Show! Para eu verificar a agenda, em qual cidade será o evento?", 1);
+    } 
+    else if (step === 1) {
+      setDadosEvento(prev => ({ ...prev, cidade: text }));
+      botReply("Entendido. E que dia será o evento? (Ex: 15/12/2026)", 2);
+    } 
+    else if (step === 2) {
+      setDadosEvento(prev => ({ ...prev, data: text }));
+      botReply("Beleza! Que horas o evento está previsto para começar?", 3);
+    } 
+    else if (step === 3) {
+      setDadosEvento(prev => ({ ...prev, horario: text }));
+      botReply("Para finalizar: Em qual plano você se interessou? (A, B ou C)", 4);
+    } 
+    else if (step === 4) {
+      setDadosEvento(prev => ({ ...prev, plano: text.toUpperCase() }));
+      botReply("Perfeito! Já organizei os detalhes aqui. Clique no botão abaixo para me enviar tudo no WhatsApp e fecharmos os detalhes!", 5, true);
+    }
   };
 
   const openWhatsApp = () => {
-    const mensagemEncoded = encodeURIComponent("Olá, estava no site de vocês e gostaria de falar sobre a contratação de um show!");
-    window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagemEncoded}`, "_blank");
+    // Mensagem formatada com tópicos (-) em vez de emojis
+    let msg = "";
+    
+    if (step === 5 && dadosEvento.cidade) {
+      msg = `Olá! Gostaria de falar sobre a contratação de um show. Seguem os detalhes:
+- Cidade: ${dadosEvento.cidade}
+- Data: ${dadosEvento.data}
+- Horário: ${dadosEvento.horario}
+- Plano: ${dadosEvento.plano}`;
+    } else {
+      msg = "Olá, gostaria de tirar algumas dúvidas sobre os shows da dupla!";
+    }
+
+    const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
   };
 
   return (
@@ -61,9 +114,7 @@ export default function Agenda() {
       
       <div className="bg-brand-gray border border-white/10 rounded-2xl overflow-hidden flex flex-col shadow-2xl">
         <div className="p-4 border-b border-white/10 flex items-center gap-4 bg-black/80">
-          <div className="w-12 h-12 bg-brand-red rounded-full flex items-center justify-center font-bold text-lg text-white">
-            B&R
-          </div>
+          <div className="w-12 h-12 bg-brand-red rounded-full flex items-center justify-center font-bold text-lg text-white">B&R</div>
           <div>
             <h4 className="font-bold flex items-center gap-2">
               Produção Brunno & Rodrigues
@@ -73,10 +124,9 @@ export default function Agenda() {
           </div>
         </div>
         
-        {/* Adicionamos a referência de rolagem nesta div aqui */}
         <div 
           ref={chatContainerRef}
-          className="p-6 flex flex-col gap-4 bg-[#0a0a0a] h-[400px] overflow-y-auto scroll-smooth"
+          className="p-6 flex flex-col gap-4 bg-[#0a0a0a] h-[450px] overflow-y-auto scroll-smooth"
         >
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -89,7 +139,7 @@ export default function Agenda() {
               {msg.sender === 'bot' && msg.isLink && (
                 <button 
                   onClick={openWhatsApp}
-                  className="bg-green-600 hover:bg-green-500 text-white font-bold rounded-2xl rounded-tl-none p-4 max-w-[85%] transition transform hover:scale-105 shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                  className="bg-green-600 hover:bg-green-500 text-white font-bold rounded-2xl p-4 w-full transition transform hover:scale-[1.02] shadow-[0_0_15px_rgba(34,197,94,0.3)] flex items-center justify-center gap-2"
                 >
                   {msg.text}
                 </button>
@@ -104,7 +154,7 @@ export default function Agenda() {
           ))}
 
           {isTyping && (
-            <div className="bg-brand-gray border border-white/5 rounded-2xl rounded-tl-none p-4 max-w-[85%] self-start text-gray-400 flex gap-1">
+            <div className="bg-brand-gray border border-white/5 rounded-2xl rounded-tl-none p-4 w-16 self-start text-gray-400 flex gap-1">
               <span className="animate-bounce">.</span><span className="animate-bounce delay-75">.</span><span className="animate-bounce delay-150">.</span>
             </div>
           )}
@@ -133,14 +183,14 @@ export default function Agenda() {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend(inputValue)}
-            placeholder="Digite sua mensagem..." 
-            className="flex-1 bg-brand-gray border border-white/10 rounded-full px-6 py-3 text-white focus:outline-none focus:border-brand-red transition"
-            disabled={!showOptions && !isTyping && messages.length > 3}
+            placeholder={step === 5 ? "Tudo pronto!" : "Digite sua resposta..."}
+            className="flex-1 bg-brand-gray border border-white/10 rounded-full px-6 py-3 text-white focus:outline-none focus:border-brand-red transition disabled:opacity-50"
+            disabled={step === 5}
           />
           <button 
             onClick={() => handleSend(inputValue)}
-            disabled={!inputValue.trim()}
-            className={`w-12 h-12 rounded-full flex items-center justify-center transition ${inputValue.trim() ? 'bg-brand-red hover:bg-red-700 text-white' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
+            disabled={!inputValue.trim() || step === 5}
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition ${inputValue.trim() && step !== 5 ? 'bg-brand-red hover:bg-red-700 text-white' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
           >
             <Send size={20} className="ml-[-2px] mt-[2px]" />
           </button>
