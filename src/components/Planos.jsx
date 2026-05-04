@@ -13,6 +13,13 @@ export default function Planos() {
 
   const telefone = "5519994335140";
 
+  // Preços Base para os cálculos
+  const precosBase = {
+    'A': 800,
+    'B': 2500,
+    'C': 0 // Sob consulta
+  };
+
   const aplicarCupom = (valor) => {
     const code = valor.toUpperCase();
     setCupom(code);
@@ -22,10 +29,9 @@ export default function Planos() {
     else setDesconto(0);
   };
 
-  const calcularPreco = (precoBase) => {
-    const valorFinal = precoBase * (1 - desconto);
-    return valorFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
+  const calcularValorComDesconto = (valor) => valor * (1 - desconto);
+
+  const formatarMoeda = (valor) => valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   const calcularLogistica = async () => {
     if (!cidadeDestino) return alert("Digite a cidade de destino!");
@@ -52,12 +58,16 @@ export default function Planos() {
       if (planoLogistica === 'C') { taxaKm = 8; integrantes = 12; }
 
       const totalLocomocao = distanciaKm * taxaKm;
-      const precisaHospedagem = distanciaKm > 200;
-      const totalHospedagem = precisaHospedagem ? integrantes * 150 : 0;
+      const totalHospedagem = distanciaKm > 200 ? integrantes * 200 : 0;
+      const valorShowComDesconto = calcularValorComDesconto(precosBase[planoLogistica]);
 
       setResultadoCalculo({
         distancia: distanciaKm,
-        total: totalLocomocao + totalHospedagem,
+        taxaKm: taxaKm,
+        locomocao: totalLocomocao,
+        hospedagem: totalHospedagem,
+        valorShow: valorShowComDesconto,
+        totalGeral: totalLocomocao + totalHospedagem + valorShowComDesconto,
         cidade: cidadeDestino.toUpperCase()
       });
     } catch (error) {
@@ -65,16 +75,22 @@ export default function Planos() {
     }
   };
 
-  const enviarWhatsApp = (nomePlano, precoBase) => {
+  const enviarWhatsApp = (nomePlano, precoBasePlano) => {
     let mensagem = `Olá! Tenho interesse no *${nomePlano}*.`;
     
-    if (precoBase > 0) {
-      mensagem += `\n- Valor do Show: ${calcularPreco(precoBase)}`;
+    // Se o preço base for > 0 (Planos A e B)
+    if (precoBasePlano > 0) {
+      const precoShow = calcularValorComDesconto(precoBasePlano);
+      mensagem += `\n- Valor do Show: ${formatarMoeda(precoShow)}`;
       if (desconto > 0) mensagem += ` (Cupom ${cupom} aplicado)`;
-    }
 
-    if (resultadoCalculo) {
-      mensagem += `\n- Logística para ${resultadoCalculo.cidade}: ${resultadoCalculo.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+      if (resultadoCalculo) {
+        mensagem += `\n\n*Logística para ${resultadoCalculo.cidade}:*`;
+        mensagem += `\n- Locomoção + Hospedagem: ${formatarMoeda(resultadoCalculo.locomocao + resultadoCalculo.hospedagem)}`;
+        mensagem += `\n\n*VALOR TOTAL ESTIMADO: ${formatarMoeda(resultadoCalculo.totalGeral)}*`;
+      }
+    } else {
+      mensagem += `\n- Gostaria de solicitar um orçamento premium corporativo.`;
     }
 
     const url = `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`;
@@ -86,7 +102,6 @@ export default function Planos() {
       <div className="max-w-7xl mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-center text-brand-red mb-16 glow-text uppercase">PLANOS</h2>
         
-        {/* GRID DE PLANOS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch mb-16">
           {/* PLANO A */}
           <div className="bg-brand-gray border border-white/10 rounded-2xl p-8 hover:border-brand-red/30 transition flex flex-col">
@@ -99,7 +114,7 @@ export default function Planos() {
             </ul>
             <div className="mb-6 flex flex-col items-center">
               {desconto > 0 && <span className="text-gray-500 line-through text-sm">R$ 800,00</span>}
-              <span className="text-4xl font-serif font-bold bg-gradient-to-b from-[#f7e482] via-[#d4af37] to-[#8a6d3b] bg-clip-text text-transparent italic tracking-tighter">{calcularPreco(800)}</span>
+              <span className="text-4xl font-serif font-bold bg-gradient-to-b from-[#f7e482] via-[#d4af37] to-[#8a6d3b] bg-clip-text text-transparent italic tracking-tighter">{formatarMoeda(calcularValorComDesconto(800))}</span>
             </div>
             <button onClick={() => enviarWhatsApp("PLANO A (Acústico)", 800)} className="w-full py-3 rounded-lg border border-brand-red text-brand-red font-bold uppercase text-xs tracking-widest">QUERO ESSE PLANO</button>
           </div>
@@ -115,7 +130,7 @@ export default function Planos() {
             </ul>
             <div className="mb-6 flex flex-col items-center">
               {desconto > 0 && <span className="text-gray-500 line-through text-sm">R$ 2.500,00</span>}
-              <span className="text-4xl font-serif font-bold bg-gradient-to-b from-[#f7e482] via-[#d4af37] to-[#8a6d3b] bg-clip-text text-transparent italic tracking-tighter">{calcularPreco(2500)}</span>
+              <span className="text-4xl font-serif font-bold bg-gradient-to-b from-[#f7e482] via-[#d4af37] to-[#8a6d3b] bg-clip-text text-transparent italic tracking-tighter">{formatarMoeda(calcularValorComDesconto(2500))}</span>
             </div>
             <button onClick={() => enviarWhatsApp("PLANO B (Banda Reduzida)", 2500)} className="w-full py-3 rounded-lg bg-brand-red text-white font-bold uppercase text-xs tracking-widest">QUERO ESSE PLANO</button>
           </div>
@@ -135,7 +150,6 @@ export default function Planos() {
           </div>
         </div>
 
-        {/* CUPOM E CALCULADORA LADO A LADO */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-brand-gray p-6 rounded-2xl border border-white/10">
             <div className="flex items-center gap-2 mb-4 text-yellow-500 justify-center"><Ticket size={20} /><span className="font-bold uppercase text-sm">Cupom?</span></div>
@@ -146,19 +160,37 @@ export default function Planos() {
           <div className="bg-brand-gray p-6 rounded-2xl border border-white/10">
             <div className="flex items-center gap-2 mb-4 text-brand-red justify-center"><Calculator size={20} /><span className="font-bold uppercase text-sm">Cálculo de Logística</span></div>
             <div className="grid grid-cols-2 gap-2 mb-2">
-              <input type="text" placeholder="Cidade" className="bg-black/30 border border-white/20 rounded-lg p-2 text-sm" onChange={(e) => setCidadeDestino(e.target.value)} />
-              <select className="bg-black/30 border border-white/20 rounded-lg p-2 text-sm" onChange={(e) => setEstadoDestino(e.target.value)}>
+              <input type="text" placeholder="Cidade" className="bg-black/30 border border-white/20 rounded-lg p-2 text-sm text-white" onChange={(e) => setCidadeDestino(e.target.value)} />
+              <select className="bg-black/30 border border-white/20 rounded-lg p-2 text-sm text-white" onChange={(e) => setEstadoDestino(e.target.value)}>
                 <option value="SP">SP</option><option value="MG">MG</option><option value="RJ">RJ</option><option value="PR">PR</option>
               </select>
             </div>
-            <select className="w-full bg-black/30 border border-white/20 rounded-lg p-2 text-sm mb-2" onChange={(e) => setPlanoLogistica(e.target.value)}>
-              <option value="A">Plano A</option><option value="B">Plano B</option><option value="C">Plano C</option>
+            <select className="w-full bg-black/30 border border-white/20 rounded-lg p-2 text-sm mb-2 text-white" onChange={(e) => setPlanoLogistica(e.target.value)}>
+              <option value="A">Plano A (Taxa R$ 2,00/km)</option>
+              <option value="B">Plano B (Taxa R$ 6,00/km)</option>
+              <option value="C">Plano C (Taxa R$ 8,00/km)</option>
             </select>
-            <button onClick={calcularLogistica} className="w-full bg-brand-red py-2 rounded-lg text-xs font-bold uppercase tracking-widest">Calcular</button>
+            <button onClick={calcularLogistica} className="w-full bg-brand-red py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition">Calcular</button>
+            
             {resultadoCalculo && (
-              <div className="mt-4 text-center border-t border-white/10 pt-2">
-                <p className="text-[10px] text-gray-400 uppercase tracking-widest">Taxa estimada para {resultadoCalculo.cidade}</p>
-                <p className="text-xl font-bold text-brand-red">{resultadoCalculo.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+              <div className="mt-4 text-left border-t border-white/10 pt-4 space-y-2">
+                <p className="text-[10px] text-gray-400 uppercase tracking-widest text-center mb-2">Resumo Detalhado</p>
+                <div className="flex justify-between text-xs text-gray-300">
+                  <span>Show ({planoLogistica}):</span>
+                  <span>{formatarMoeda(resultadoCalculo.valorShow)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-300">
+                  <span>Locomoção ({resultadoCalculo.distancia}km):</span>
+                  <span>{formatarMoeda(resultadoCalculo.locomocao)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-yellow-500 font-semibold">
+                  <span>Hospedagem (acima de 200km):</span>
+                  <span>{resultadoCalculo.hospedagem > 0 ? formatarMoeda(resultadoCalculo.hospedagem) : 'Não necessária'}</span>
+                </div>
+                <div className="flex justify-between items-center border-t border-white/5 pt-2 mt-2">
+                  <span className="text-sm font-bold uppercase text-white">INVESTIMENTO TOTAL:</span>
+                  <span className="text-xl font-bold text-brand-red">{formatarMoeda(resultadoCalculo.totalGeral)}</span>
+                </div>
               </div>
             )}
           </div>
