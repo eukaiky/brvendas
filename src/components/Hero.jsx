@@ -1,56 +1,54 @@
 export default function Hero() {
   return (
-    <section className="relative h-screen flex items-center justify-center overflow-hidden">
-      {/* Imagem de Fundo */}
-      <div 
-        className="absolute inset-0 z-0 bg-cover bg-[center_20%] bg-no-repeat"
-        style={{ backgroundImage: 'url("/cantores.jpeg")' }}
-      />
-      
-      {/* Degrade escuro */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-b from-brand-dark/30 via-brand-dark/40 to-brand-dark" />
-      
-      {/* LOGO */}
-      <div className="relative z-10 text-center px-4 mt-[-10%] md:mt-20">
-        <img 
-          src="/logo-branca.png" 
-          alt="Logo Brunno & Rodrigues" 
-          className="w-52 md:w-[350px] drop-shadow-2xl object-contain"
+    <section className="relative h-[90vh] md:h-screen flex flex-col items-center overflow-hidden bg-brand-dark">
+      {/* Estilo para a animação de "pulinho" com intervalo de 3s */}
+      <style jsx global>{`
+        @keyframes delayedJump {
+          0%, 80%, 100% { transform: translateY(0); }
+          90% { transform: translateY(-20px); }
+        }
+        .animate-jump-delayed {
+          animation: delayedJump 4.5s ease-in-out infinite;
+        }
+      `}</style>
+
+      {/* Container que pula inteiro (Imagem + Logo + Botão) */}
+      <div className="absolute inset-0 z-10 animate-jump-delayed">
+        {/* Imagem de Fundo */}
+        <div 
+          className="absolute inset-0 bg-cover bg-[center_20%] bg-no-repeat"
+          style={{ backgroundImage: 'url("/cantores.jpeg")' }}
         />
-      </div>
-
-      {/* RODAPÉ: Botão em cima e Seta embaixo */}
-      <div className="absolute bottom-8 md:bottom-10 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center w-full px-6 gap-5">
         
-        {/* Botão: Aparece apenas no Mobile */}
-        <a 
-          href="#planos" 
-          className="flex md:hidden bg-brand-red text-white text-xs px-10 py-4 rounded-full font-bold uppercase tracking-widest hover:bg-red-700 transition active:scale-95 shadow-[0_0_20px_rgba(230,0,0,0.4)]"
-        >
-          Quero ver planos
-        </a>
+        {/* Degrade escuro */}
+        <div className="absolute inset-0 bg-gradient-to-b from-brand-dark/20 via-brand-dark/50 to-brand-dark" />
+        
+        {/* CONTEÚDO CENTRALIZADO */}
+        <div className="relative w-full h-full px-6 md:px-12 flex flex-col items-center md:items-start">
+          
+          {/* LOGO */}
+          <div className="pt-52 md:pt-16">
+            <img 
+              src="/logo-branca.png" 
+              alt="Logo Brunno & Rodrigues" 
+              className="w-60 md:w-[300px] drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] object-contain"
+            />
+          </div>
 
-        {/* Setinha: Fica abaixo do botão no mobile e sozinha no desktop */}
-        <a 
-          href="#o-show" 
-          className="text-white/70 hover:text-brand-red transition duration-300 flex flex-col items-center cursor-pointer"
-        >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="36" 
-            height="36" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            className="animate-bounce"
-          >
-            <path d="m6 9 6 6 6-6"/>
-          </svg>
-        </a>
+          {/* BOTÃO MOBILE: mt-6 para subir os 8% solicitados */}
+          <div className="mt-6 md:hidden">
+            <a 
+              href="#planos" 
+              className="bg-brand-red text-white text-[13px] px-10 py-3.5 rounded-full font-bold uppercase tracking-widest shadow-[0_10px_20px_rgba(230,0,0,0.5)] active:scale-95 transition inline-block"
+            >
+              Quero ver planos
+            </a>
+          </div>
+        </div>
       </div>
+
+      {/* Gradiente inferior */}
+      <div className="absolute bottom-0 w-full h-24 bg-gradient-to-t from-brand-dark to-transparent z-20" />
     </section>
   );
 }
