@@ -4,7 +4,6 @@ import { Zap, Star, Crown, Check, Ticket, Calculator } from 'lucide-react';
 export default function Planos() {
   const [cupom, setCupom] = useState('');
   
-  // 1. Atualizado preço inicial do Plano C para 5000
   const [precosAtuais, setPrecosAtuais] = useState({
     'A': 800,
     'B': 2500,
@@ -48,7 +47,6 @@ export default function Planos() {
     { sigla: "TO", nome: "Tocantins" }
   ];
 
-  // 2. Atualizada a lógica de descontos para incluir o Plano C
   const aplicarCupom = (valor) => {
     const code = valor.toUpperCase();
     setCupom(code);
@@ -151,11 +149,11 @@ export default function Planos() {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch mb-16">
           {/* PLANO A */}
-          <div className="bg-brand-gray border border-white/10 rounded-2xl p-8 hover:border-brand-red/30 transition flex flex-col">
-            <div className="flex items-center gap-3 text-brand-red mb-4"><Zap size={28} /><h3 className="text-2xl font-bold text-white uppercase">PLANO A</h3></div>
+          <div className="bg-brand-gray border border-white/10 rounded-2xl p-8 hover:border-brand-red/30 transition flex flex-col text-center">
+            <div className="flex items-center justify-center gap-3 text-brand-red mb-4"><Zap size={28} /><h3 className="text-2xl font-bold text-white uppercase">PLANO A</h3></div>
             <p className="text-brand-red font-semibold mb-2">Acústico</p>
             <p className="text-xs text-gray-400 mb-6">Recomendado para: Bares, Pubs e Restaurantes</p>
-            <ul className="space-y-4 mb-8 flex-grow text-gray-300 text-sm">
+            <ul className="space-y-4 mb-8 flex-grow text-gray-300 text-sm text-left">
               <li className="flex gap-3"><Check className="text-brand-red flex-shrink-0" size={18} /> Formato: Voz, violão e cajón</li>
               <li className="flex gap-3"><Check className="text-brand-red flex-shrink-0" size={18} /> Tempo: 2 a 3h de show</li>
               <li className="flex gap-3"><Check className="text-brand-red flex-shrink-0" size={18} /> Som: PA básico incluso</li>
@@ -165,16 +163,20 @@ export default function Planos() {
               {precosAtuais['A'] < 800 && <span className="text-gray-500 line-through text-sm">R$ 800,00</span>}
               <span className="text-4xl font-serif font-bold bg-gradient-to-b from-[#f7e482] via-[#d4af37] to-[#8a6d3b] bg-clip-text text-transparent tracking-tighter">{formatarMoeda(precosAtuais['A'])}</span>
             </div>
+            {/* AVISO LOGÍSTICA */}
+            <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-wider leading-relaxed">
+              Taxas de locomoção e hospedagem (se necessário) não inclusas. Verifique o valor na calculadora de logística abaixo.
+            </p>
             <button onClick={() => enviarWhatsApp("PLANO A (Acústico)", 'A')} className="w-full py-3 rounded-lg border border-brand-red text-brand-red font-bold uppercase text-xs tracking-widest hover:bg-brand-red hover:text-white transition">QUERO ESSE PLANO</button>
           </div>
 
           {/* PLANO B */}
-          <div className="bg-brand-gray border-2 border-brand-red rounded-2xl p-8 transform md:-translate-y-4 shadow-xl relative flex flex-col">
+          <div className="bg-brand-gray border-2 border-brand-red rounded-2xl p-8 transform md:-translate-y-4 shadow-xl relative flex flex-col text-center">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-brand-red text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest text-center">MAIS PEDIDO</div>
-            <div className="flex items-center gap-3 text-brand-red mb-4 mt-2"><Star size={28} /><h3 className="text-2xl font-bold text-white uppercase">PLANO B</h3></div>
+            <div className="flex items-center justify-center gap-3 text-brand-red mb-4 mt-2"><Star size={28} /><h3 className="text-2xl font-bold text-white uppercase">PLANO B</h3></div>
             <p className="text-brand-red font-semibold mb-2">Banda Reduzida</p>
             <p className="text-xs text-gray-400 mb-6">Recomendado para: Festas e pequenos casamentos</p>
-            <ul className="space-y-4 mb-8 flex-grow text-gray-300 text-sm">
+            <ul className="space-y-4 mb-8 flex-grow text-gray-300 text-sm text-left">
               <li className="flex gap-3"><Check className="text-brand-red flex-shrink-0" size={18} /> Músicos: Bateria, baixo, violão, sanfona/teclado</li>
               <li className="flex gap-3"><Check className="text-brand-red flex-shrink-0" size={18} /> Tempo: 2h a 3h de show</li>
               <li className="flex gap-3"><Check className="text-brand-red flex-shrink-0" size={18} /> Backline: Estrutura completa</li>
@@ -184,15 +186,19 @@ export default function Planos() {
               {precosAtuais['B'] < 2500 && <span className="text-gray-500 line-through text-sm">R$ 2.500,00</span>}
               <span className="text-4xl font-serif font-bold bg-gradient-to-b from-[#f7e482] via-[#d4af37] to-[#8a6d3b] bg-clip-text text-transparent tracking-tighter">{formatarMoeda(precosAtuais['B'])}</span>
             </div>
+            {/* AVISO LOGÍSTICA */}
+            <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-wider leading-relaxed">
+              Taxas de locomoção e hospedagem (se necessário) não inclusas. Verifique o valor na calculadora de logística abaixo.
+            </p>
             <button onClick={() => enviarWhatsApp("PLANO B (Banda Reduzida)", 'B')} className="w-full py-3 rounded-lg bg-brand-red text-white font-bold uppercase text-xs tracking-widest hover:bg-red-700 transition">QUERO ESSE PLANO</button>
           </div>
 
-          {/* PLANO C - Atualizado de 'Sob Consulta' para preço fixo */}
-          <div className="bg-brand-gray border border-white/10 rounded-2xl p-8 hover:border-brand-red/30 transition flex flex-col">
-            <div className="flex items-center gap-3 text-brand-red mb-4"><Crown size={28} /><h3 className="text-2xl font-bold text-white uppercase">PLANO C</h3></div>
+          {/* PLANO C */}
+          <div className="bg-brand-gray border border-white/10 rounded-2xl p-8 hover:border-brand-red/30 transition flex flex-col text-center">
+            <div className="flex items-center justify-center gap-3 text-brand-red mb-4"><Crown size={28} /><h3 className="text-2xl font-bold text-white uppercase">PLANO C</h3></div>
             <p className="text-brand-red font-semibold mb-2">Premium Corporativo</p>
             <p className="text-xs text-gray-400 mb-6">Recomendado para: prefeituras, grandes casamentos e grandes eventos</p>
-            <ul className="space-y-4 mb-8 flex-grow text-gray-300 text-sm">
+            <ul className="space-y-4 mb-8 flex-grow text-gray-300 text-sm text-left">
               <li className="flex gap-3"><Check className="text-brand-red flex-shrink-0" size={18} /> Músicos: Bateria, baixo, violão base/solo, sanfona, percuteria</li>
               <li className="flex gap-3"><Check className="text-brand-red flex-shrink-0" size={18} /> Backline: Estrutura completa</li>
               <li className="flex gap-3"><Check className="text-brand-red flex-shrink-0" size={18} /> Produção: Equipe completa</li>
@@ -201,6 +207,10 @@ export default function Planos() {
               {precosAtuais['C'] < 5000 && <span className="text-gray-500 line-through text-sm">R$ 5.000,00</span>}
               <span className="text-4xl font-serif font-bold bg-gradient-to-b from-[#f7e482] via-[#d4af37] to-[#8a6d3b] bg-clip-text text-transparent tracking-tighter">{formatarMoeda(precosAtuais['C'])}</span>
             </div>
+            {/* AVISO LOGÍSTICA */}
+            <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-wider leading-relaxed">
+              Taxas de locomoção e hospedagem (se necessário) não inclusas. Verifique o valor na calculadora de logística abaixo.
+            </p>
             <button onClick={() => enviarWhatsApp("PLANO C (Premium)", 'C')} className="w-full py-3 rounded-lg border border-brand-red text-brand-red font-bold uppercase text-xs tracking-widest hover:bg-brand-red hover:text-white transition">QUERO ESSE PLANO</button>
           </div>
         </div>
@@ -210,7 +220,6 @@ export default function Planos() {
           <div className="bg-brand-gray p-6 rounded-2xl border border-white/10 flex flex-col justify-center">
             <div className="flex items-center gap-2 mb-4 text-yellow-500 justify-center"><Ticket size={20} /><span className="font-bold uppercase text-sm">Cupom?</span></div>
             <input type="text" value={cupom} onChange={(e) => aplicarCupom(e.target.value)} placeholder="Código..." className="w-full bg-black/30 border border-white/20 rounded-lg py-3 text-center text-white uppercase outline-none focus:border-brand-red transition" />
-            {/* Aviso visual de cupom aplicado agora checa qualquer desconto nos precosAtuais */}
             {(precosAtuais['A'] < 800 || precosAtuais['B'] < 2500 || precosAtuais['C'] < 5000) && <p className="text-green-500 text-center text-xs mt-3 font-bold uppercase tracking-widest animate-pulse">✓ Cupom {cupom} aplicado!</p>}
           </div>
 
